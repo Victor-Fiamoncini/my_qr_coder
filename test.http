@@ -1,0 +1,13 @@
+### Global Variables
+@baseUrl = http://localhost:8080
+
+### Generates a new qr code
+# @name generateQrCode
+# @request POST /qrcode
+# @response 201 Created
+POST {{baseUrl}}/qrcode HTTP/1.1
+Content-Type: application/json
+
+{
+  "text": "any_random_text"
+}
