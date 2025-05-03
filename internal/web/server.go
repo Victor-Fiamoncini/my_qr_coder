@@ -1,6 +1,10 @@
 package web
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/Victor-Fiamoncini/my_qr_coder/internal/app/service"
+	"github.com/Victor-Fiamoncini/my_qr_coder/internal/infra"
+	"github.com/gofiber/fiber/v2"
+)
 
 type QrCodePostRequestBody struct {
 	Text string `json:"text"`
@@ -19,6 +23,15 @@ func NewHttpServer(port string) *HttpServer {
 }
 
 func (h *HttpServer) RegisterRoutes() {
+	skip2QrCodeGenerator := infra.NewSkip2QrCodeGenerator()
+	s3FileStorage, err := infra.NewS3FileStorage("us-east-1", "my-qr-code-bucket")
+
+	if err != nil {
+		panic(err)
+	}
+
+	generateQrCodeService := service.NewGenerateQrCodeService(skip2QrCodeGenerator, s3FileStorage)
+
 	h.server.Post("/qrcode", func(c *fiber.Ctx) error {
 		var body QrCodePostRequestBody
 
@@ -30,10 +43,13 @@ func (h *HttpServer) RegisterRoutes() {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "The 'text' field is required"})
 		}
 
-		return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-			"message": "Received text successfully",
-			"text":    body.Text,
-		})
+		qrCodeUrl, err := generateQrCodeService.GenerateQrCode(body.Text)
+
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate QR code"})
+		}
+
+		return c.Status(fiber.StatusCreated).JSON(fiber.Map{"url": qrCodeUrl})
 	})
 }
 
