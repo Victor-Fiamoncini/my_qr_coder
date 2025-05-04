@@ -16,7 +16,7 @@ func main() {
 	}
 
 	skip2QrCodeGenerator := infra.NewSkip2QrCodeGenerator()
-	s3FileStorage, err := infra.NewS3FileStorage(os.Getenv("AWS_REGION"), os.Getenv("AWS_BUCKET_NAME"))
+	s3FileStorage, err := infra.NewS3FileStorage(os.Getenv("AWS_BUCKET_NAME"), os.Getenv("AWS_REGION"))
 
 	if err != nil {
 		panic(err)

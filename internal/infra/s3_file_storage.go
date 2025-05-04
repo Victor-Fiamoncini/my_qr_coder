@@ -8,7 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
 type S3FileStorage struct {
@@ -39,7 +38,6 @@ func (s *S3FileStorage) StoreFile(fileName, fileType string, fileContent []byte)
 		Key:         aws.String(fileName),
 		Body:        bytes.NewReader(fileContent),
 		ContentType: aws.String(fileType),
-		ACL:         types.ObjectCannedACLPublicRead,
 	})
 
 	if err != nil {
