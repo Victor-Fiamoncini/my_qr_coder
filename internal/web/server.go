@@ -1,10 +1,9 @@
 package web
 
 import (
-	"os"
+	"fmt"
 
 	"github.com/Victor-Fiamoncini/my_qr_coder/internal/app/service"
-	"github.com/Victor-Fiamoncini/my_qr_coder/internal/infra"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -13,31 +12,20 @@ type QrCodePostRequestBody struct {
 }
 
 type HttpServer struct {
-	server *fiber.App
-	port   string
+	server                *fiber.App
+	port                  string
+	generateQrCodeService *service.GenerateQrCodeService
 }
 
-func NewHttpServer(port string) *HttpServer {
+func NewHttpServer(port string, generateQrCodeService *service.GenerateQrCodeService) *HttpServer {
 	return &HttpServer{
-		server: fiber.New(),
-		port:   port,
+		server:                fiber.New(),
+		port:                  port,
+		generateQrCodeService: generateQrCodeService,
 	}
 }
 
 func (h *HttpServer) RegisterRoutes() {
-	skip2QrCodeGenerator := infra.NewSkip2QrCodeGenerator()
-
-	region := os.Getenv("AWS_REGION")
-	bucketName := os.Getenv("AWS_BUCKET_NAME")
-
-	s3FileStorage, err := infra.NewS3FileStorage(region, bucketName)
-
-	if err != nil {
-		panic(err)
-	}
-
-	generateQrCodeService := service.NewGenerateQrCodeService(skip2QrCodeGenerator, s3FileStorage)
-
 	h.server.Get("/health", func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusOK).SendString("Server is running")
 	})
@@ -53,7 +41,9 @@ func (h *HttpServer) RegisterRoutes() {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "The 'text' field is required"})
 		}
 
-		qrCodeUrl, err := generateQrCodeService.GenerateQrCode(body.Text)
+		qrCodeUrl, err := h.generateQrCodeService.GenerateQrCode(body.Text)
+
+		fmt.Println("err", err)
 
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate QR code"})
@@ -64,7 +54,11 @@ func (h *HttpServer) RegisterRoutes() {
 }
 
 func (h *HttpServer) Start() error {
-	h.server.Listen(":" + h.port)
+	err := h.server.Listen(":" + h.port)
+
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
