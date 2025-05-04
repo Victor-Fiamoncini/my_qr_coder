@@ -1,8 +1,6 @@
 package web
 
 import (
-	"fmt"
-
 	"github.com/Victor-Fiamoncini/my_qr_coder/internal/app/service"
 	"github.com/gofiber/fiber/v2"
 )
@@ -42,8 +40,6 @@ func (h *HttpServer) RegisterRoutes() {
 		}
 
 		qrCodeUrl, err := h.generateQrCodeService.GenerateQrCode(body.Text)
-
-		fmt.Println("err", err)
 
 		if err != nil {
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate QR code"})
