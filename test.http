@@ -1,6 +1,12 @@
 ### Global Variables
 @baseUrl = http://localhost:8080
 
+### Health check
+# @name healthCheck
+# @request GET /health
+# @response 200 OK
+GET {{baseUrl}}/health HTTP/1.1
+
 ### Generates a new qr code
 # @name generateQrCode
 # @request POST /qrcode
@@ -9,5 +15,5 @@ POST {{baseUrl}}/qrcode HTTP/1.1
 Content-Type: application/json
 
 {
-  "text": "any_random_text"
+  "text": "https://google.com"
 }
