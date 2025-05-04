@@ -1,6 +1,8 @@
 package web
 
 import (
+	"os"
+
 	"github.com/Victor-Fiamoncini/my_qr_coder/internal/app/service"
 	"github.com/Victor-Fiamoncini/my_qr_coder/internal/infra"
 	"github.com/gofiber/fiber/v2"
@@ -24,13 +26,21 @@ func NewHttpServer(port string) *HttpServer {
 
 func (h *HttpServer) RegisterRoutes() {
 	skip2QrCodeGenerator := infra.NewSkip2QrCodeGenerator()
-	s3FileStorage, err := infra.NewS3FileStorage("us-east-1", "my-qr-code-bucket")
+
+	region := os.Getenv("AWS_REGION")
+	bucketName := os.Getenv("AWS_BUCKET_NAME")
+
+	s3FileStorage, err := infra.NewS3FileStorage(region, bucketName)
 
 	if err != nil {
 		panic(err)
 	}
 
 	generateQrCodeService := service.NewGenerateQrCodeService(skip2QrCodeGenerator, s3FileStorage)
+
+	h.server.Get("/health", func(c *fiber.Ctx) error {
+		return c.Status(fiber.StatusOK).SendString("Server is running")
+	})
 
 	h.server.Post("/qrcode", func(c *fiber.Ctx) error {
 		var body QrCodePostRequestBody
