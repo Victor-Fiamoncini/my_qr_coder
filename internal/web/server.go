@@ -42,7 +42,7 @@ func (h *HttpServer) RegisterRoutes() {
 		qrCodeUrl, err := h.generateQrCodeService.GenerateQrCode(body.Text)
 
 		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to generate QR code"})
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Message})
 		}
 
 		return c.Status(fiber.StatusCreated).JSON(fiber.Map{"url": qrCodeUrl})
